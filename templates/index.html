@@ -3,81 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>퍼포먼스마케팅팀 페북 리젝 대시보드</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        async function fetchAdsData() {
-            try {
-                const response = await fetch('/api/ads');
-                const data = await response.json();
-                displayAdsData(data);
-            } catch (error) {
-                console.error('Error fetching ads data:', error);
+    <title>Meta Ads Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 24px;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .update-time {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .team-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .team-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .team-button:hover {
+            background-color: #2980b9;
+        }
+
+        .team-button.active {
+            background-color: #2c3e50;
+        }
+
+        .current-team {
+            font-size: 18px;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            margin: 20px 0;
+        }
+
+        .table-container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: 600;
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            color: #2c3e50;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .scroll-wrapper {
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .team-button {
+                padding: 6px 12px;
+                font-size: 14px;
             }
         }
-
-        function displayAdsData(ads) {
-            const tableBody = document.getElementById('adsTableBody');
-            tableBody.innerHTML = '';
-
-            ads.forEach(ad => {
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-100';
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap">${ad.ad_name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${ad.campaign_name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${ad.adset_name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                            ${ad.effective_status}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">${ad.rejection_reason}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${new Date(ad.updated_time).toLocaleDateString()}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-
-        // Fetch data when page loads
-        document.addEventListener('DOMContentLoaded', fetchAdsData);
-    </script>
+    </style>
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-8">퍼포먼스마케팅팀 페북 리젝 대시보드</h1>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Meta 광고 현황 대시보드</h1>
+            <div id="updateTime" class="update-time">
+                마지막 업데이트: 로딩중...
+            </div>
+        </div>
         
-        <div class="bg-white shadow overflow-hidden rounded-lg">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+        <!-- 팀 선택 버튼 -->
+        <div class="team-buttons">
+            <button onclick="loadTeamData('team1')" class="team-button" data-team="team1">1팀</button>
+            <button onclick="loadTeamData('team2A')" class="team-button" data-team="team2A">2팀A</button>
+            <button onclick="loadTeamData('team2B')" class="team-button" data-team="team2B">2팀B</button>
+            <button onclick="loadTeamData('team3')" class="team-button" data-team="team3">3팀</button>
+            <button onclick="loadTeamData('team4')" class="team-button" data-team="team4">4팀</button>
+            <button onclick="loadTeamData('teamOverseas')" class="team-button" data-team="teamOverseas">해외진출</button>
+        </div>
+
+        <h2 id="currentTeam" class="current-team">1팀 광고 현황</h2>
+
+        <div id="loading" class="loading" style="display: none;">
+            데이터를 불러오는 중...
+        </div>
+
+        <div class="table-container">
+            <div class="scroll-wrapper">
+                <table>
+                    <thead>
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                광고
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                캠페인
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                광고그룹
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                상태
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                리젝 사유
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                최종 수정일
-                            </th>
+                            <th>캠페인</th>
+                            <th>광고 그룹</th>
+                            <th>광고</th>
+                            <th>거절 사유</th>
+                            <th>마지막 수정일</th>
                         </tr>
                     </thead>
-                    <tbody id="adsTableBody" class="bg-white divide-y divide-gray-200">
-                        <!-- Data will be populated here -->
+                    <tbody id="adsTable">
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+
+    <script>
+        let currentTeam = 'team1';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTeamData('team1');
+            updateLastUpdateTime();
+        });
+
+        function updateLastUpdateTime() {
+            const updateTimeElement = document.getElementById('updateTime');
+            const now = new Date();
+            const formattedTime = now.toLocaleString('ko-KR', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit',
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
+            updateTimeElement.textContent = `마지막 업데이트: ${formattedTime}`;
+        }
+
+        function updateActiveButton(team) {
+            document.querySelectorAll('.team-button').forEach(button => {
+                if (button.getAttribute('data-team') === team) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+        }
+
+        async function loadTeamData(team) {
+            currentTeam = team;
+            const tableBody = document.getElementById('adsTable');
+            const loading = document.getElementById('loading');
+            const currentTeamElement = document.getElementById('currentTeam');
+            
+            updateActiveButton(team);
+            
+            const teamNames = {
+                'team1': '1팀',
+                'team2A': '2팀A',
+                'team2B': '2팀B',
+                'team3': '3팀',
+                'team4': '4팀',
+                'teamOverseas': '해외진출'
+            };
+            currentTeamElement.textContent = `${teamNames[team]} 광고 현황`;
+
+            loading.style.display = 'block';
+            tableBody.innerHTML = '';
+
+            try {
+                const url = team === 'all' ? '/ads/' : `/ads/?team=${team}`;
+                const response = await axios.get(url);
+                const ads = response.data;
+
+                ads.forEach(ad => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${ad.campaign}</td>
+                        <td>${ad.adgroup}</td>
+                        <td>${ad.ad}</td>
+                        <td>${ad.rejectReasaon}</td>
+                        <td>${new Date(ad.lastModified).toLocaleString('ko-KR')}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                updateLastUpdateTime();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #e74c3c;">
+                            데이터를 불러오는 중 오류가 발생했습니다.
+                        </td>
+                    </tr>
+                `;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+    </script>
 </body>
 </html>

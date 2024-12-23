@@ -1,0 +1,126 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.title {
+    font-size: 24px;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.update-time {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.team-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.team-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #3498db;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.team-button:hover {
+    background-color: #2980b9;
+}
+
+.team-button.active {
+    background-color: #2c3e50;
+}
+
+.current-team {
+    font-size: 18px;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.loading {
+    text-align: center;
+    color: #666;
+    margin: 20px 0;
+}
+
+.table-container {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+}
+
+th {
+    background-color: #f8f9fa;
+    color: #2c3e50;
+    font-weight: 600;
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #e9ecef;
+    color: #2c3e50;
+}
+
+tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.scroll-wrapper {
+    overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
+    .team-button {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+}

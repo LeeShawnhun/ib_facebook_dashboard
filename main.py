@@ -1,94 +1,116 @@
-from facebook_business.api import FacebookAdsApi
-from facebook_business.adobjects.adaccount import AdAccount
-from facebook_business.adobjects.campaign import Campaign
-from facebook_business.adobjects.adset import AdSet
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Depends, Query, Request
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, JSONResponse
-from typing import List, Dict
-import uvicorn
 
-# 터미널에 uvicorn main:app --reload 로 실행
+from sqlalchemy.orm import Session
+
+from app import models, crud, schemas
+from app.database import SessionLocal, engine
+from app.scheduler import init_scheduler
+from typing import List, Optional
+import os
+import ipaddress
+from dotenv import load_dotenv
+
+# .env 파일 로드
+load_dotenv()
+
+# # 환경변수에서 허용 IP 목록 가져오기
+# ALLOWED_IPS = os.getenv("ALLOWED_IPS", "").split(",")
+# ALLOWED_IP_RANGES = os.getenv("ALLOWED_IP_RANGES", "").split(",")
+
+# class IPRestrictionMiddleware:
+#     def __init__(self):
+#         self.allowed_ips = set(ip.strip() for ip in ALLOWED_IPS if ip.strip())
+#         self.allowed_ip_ranges = []
+        
+#         # IP 범위 처리
+#         for ip_range in ALLOWED_IP_RANGES:
+#             if ip_range.strip():
+#                 try:
+#                     self.allowed_ip_ranges.append(ipaddress.ip_network(ip_range.strip()))
+#                 except ValueError as e:
+#                     print(f"Invalid IP range format: {ip_range}, error: {e}")
+
+#     async def __call__(self, request: Request, call_next):
+#         # 개발 모드에서는 IP 제한 비활성화
+#         if os.getenv("ENV") == "development":
+#             return await call_next(request)
+            
+#         # client IP 주소 가져오기
+#         client_ip = request.client.host
+        
+#         # Render의 프록시를 통과한 실제 클라이언트 IP 확인
+#         forwarded_for = request.headers.get("x-forwarded-for")
+#         if forwarded_for:
+#             client_ip = forwarded_for.split(",")[0].strip()
+        
+#         # IP 검사
+#         if not self._is_ip_allowed(client_ip):
+#             return JSONResponse(
+#                 status_code=403,
+#                 content={
+#                     "detail": "Access denied. Your IP is not in the allowed list."
+#                 }
+#             )
+        
+#         return await call_next(request)
+    
+#     def _is_ip_allowed(self, ip: str) -> bool:
+#         if not self.allowed_ips and not self.allowed_ip_ranges:
+#             return True  # IP 제한이 설정되지 않은 경우 모든 접근 허용
+            
+#         if ip in self.allowed_ips:
+#             return True
+            
+#         try:
+#             client_ip = ipaddress.ip_address(ip)
+#             for ip_range in self.allowed_ip_ranges:
+#                 if client_ip in ip_range:
+#                     return True
+#         except ValueError:
+#             return False
+            
+#         return False
+
+# FastAPI 애플리케이션 설정
 app = FastAPI()
 
-# Static files and templates setup
+# # 미들웨어 추가
+# app.add_middleware(IPRestrictionMiddleware)
+
+# 정적 파일 서빙 설정
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# 템플릿 설정
 templates = Jinja2Templates(directory="templates")
 
-# Facebook credentials
-ACCESS_TOKEN = 'EAAIdhh3O5lMBOyZBOfEGlIlz15VG5w8uhQaZAnTZCOki1FqnZCYtTLcvg0I80VjlQZCGZBvBDfTmOF6erPqweMRlXo0LjwoM2i52Rwz0H309uemjecjgJNaZBMRZAFP0EI5z2qPO8qnS1XqZC7ZCRm4ZBFdwDlW8VouWIFS1otjGTdpERWyFabr8lgsZBWjvpdjjckZAp'
-APP_ID = '595411816343123'
-APP_SECRET = '75a3b637be5da6d9b226afe1bd349e82'
-AD_ACCOUNT_ID = 1596591621287444
+# 데이터베이스 초기화
+models.Base.metadata.create_all(bind=engine)
 
-# Initialize Facebook API
-FacebookAdsApi.init(access_token=ACCESS_TOKEN, app_id=APP_ID, app_secret=APP_SECRET)
+@app.on_event("startup")
+async def startup_event():
+    init_scheduler()
 
-def get_ads_data() -> List[Dict]:
-    """Fetch and format ads data"""
+def get_db():
+    db = SessionLocal()
     try:
-        account = AdAccount(f'act_{AD_ACCOUNT_ID}')
-        ads = account.get_ads(fields=[
-            'account_id', 'campaign_id', 'adset_id', 'name', 'status',
-            'configured_status', 'effective_status', 'created_time',
-            'updated_time', 'ad_review_feedback', 'id', 'issues_info'
-        ])
-        
-        formatted_ads = []
-        for ad in ads:
-            if ad['effective_status'] == "DISAPPROVED":
-                campaign_name = get_campaign_name(ad['campaign_id'])
-                adset_name = get_adset_name(ad['adset_id'])
-                
-                formatted_ad = {
-                    'account_id': ad['account_id'],
-                    'campaign_id': ad['campaign_id'],
-                    'campaign_name': campaign_name,
-                    'adset_id': ad['adset_id'],
-                    'adset_name': adset_name,
-                    'ad_name': ad['name'],
-                    'ad_id': ad['id'],
-                    'created_time': ad['created_time'],
-                    'updated_time': ad['updated_time'],
-                    'status': ad['status'],
-                    'configured_status': ad['configured_status'],
-                    'effective_status': ad['effective_status'],
-                    'rejection_reason': list(ad['ad_review_feedback']["global"].keys())[0] if "global" in ad['ad_review_feedback'] else "Unknown"
-                }
-                formatted_ads.append(formatted_ad)
-                
-        return formatted_ads
-    except Exception as e:
-        print(f"Error fetching ads: {str(e)}")
-        return []
-
-def get_campaign_name(campaign_id):
-    try:
-        campaign = Campaign(campaign_id)
-        campaign_info = campaign.api_get(fields=['name'])
-        return campaign_info['name']
-    except Exception as e:
-        print(f"Error fetching campaign name: {str(e)}")
-        return None
-
-def get_adset_name(adset_id):
-    try:
-        adset = AdSet(adset_id)
-        adset_info = adset.api_get(fields=['name'])
-        return adset_info['name']
-    except Exception as e:
-        print(f"Error fetching adset name: {str(e)}")
-        return None
+        yield db
+    finally:
+        db.close()
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+async def read_root():
+    with open("templates/index.html", "r", encoding="utf-8") as f:
+        return f.read()
 
-@app.get("/api/ads")
-async def get_ads():
-    ads_data = get_ads_data()
-    return JSONResponse(content=ads_data)
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+@app.get("/ads/", response_model=List[schemas.Ad])
+def read_ads(
+    skip: int = 0,
+    limit: int = 100,
+    team: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    ads = crud.get_ads_by_team(db, team=team, skip=skip, limit=limit)
+    return ads
