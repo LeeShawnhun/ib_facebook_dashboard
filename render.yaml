@@ -1,0 +1,11 @@
+# render.yaml
+services:
+  - type: web
+    name: your-app-name
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    disk:
+      name: sqlite-backup
+      mountPath: /opt/render/project/src/backups
+      sizeGB: 1

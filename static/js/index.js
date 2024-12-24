@@ -1,5 +1,5 @@
 let currentTeam = 'team1';
-    
+        
 document.addEventListener('DOMContentLoaded', () => {
     loadTeamData('team1');
     updateLastUpdateTime();
@@ -8,18 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
 function updateLastUpdateTime() {
     const updateTimeElement = document.getElementById('updateTime');
     const now = new Date();
-    
-    // 분과 초를 0으로 설정
-    now.setMinutes(0);
-    now.setSeconds(0);
-    
     const formattedTime = now.toLocaleString('ko-KR', { 
         year: 'numeric', 
         month: '2-digit', 
         day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
     });
     updateTimeElement.textContent = `마지막 업데이트: ${formattedTime}`;
 }
@@ -39,9 +34,9 @@ async function loadTeamData(team) {
     const tableBody = document.getElementById('adsTable');
     const loading = document.getElementById('loading');
     const currentTeamElement = document.getElementById('currentTeam');
-
+    
     updateActiveButton(team);
-
+    
     const teamNames = {
         'team1': '1팀',
         'team2A': '2팀A',
@@ -56,18 +51,19 @@ async function loadTeamData(team) {
     tableBody.innerHTML = '';
 
     try {
-        const url = team === 'team1' ? '/ads/' : `/ads/?team=${team}`;
+        const url = team === 'all' ? '/ads/' : `/ads/?team=${team}`;
         const response = await axios.get(url);
         const ads = response.data;
 
         ads.forEach(ad => {
             const row = document.createElement('tr');
             row.innerHTML = `
+                <td>${ad.account_name}</td>
                 <td>${ad.campaign}</td>
                 <td>${ad.adgroup}</td>
-                <td>${ad.ad}</td>
-                <td>${ad.rejectReasaon}</td>
-                <td>${new Date(ad.lastModified).toLocaleString('ko-KR')}</td>
+                <td>${ad.ad_name}</td>
+                <td>${ad.reject_reason}</td>
+                <td>${new Date(ad.last_modified).toLocaleString('ko-KR')}</td>
             `;
             tableBody.appendChild(row);
         });
@@ -84,5 +80,40 @@ async function loadTeamData(team) {
         `;
     } finally {
         loading.style.display = 'none';
+    }
+}
+
+async function createBackup() {
+    try {
+        const response = await fetch('/admin/backup', {
+            method: 'get',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        alert(data.message);
+    } catch (error) {
+        console.error('Error:', error);
+        alert('백업 생성 중 오류가 발생했습니다: ' + error.message);
+    }
+}
+
+async function downloadBackup() {
+    try {
+        const response = await fetch('/admin/download-backup');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'database_backup.db';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Error downloading backup:', error);
     }
 }

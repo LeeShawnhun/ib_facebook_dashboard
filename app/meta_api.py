@@ -6,6 +6,7 @@ from datetime import datetime
 import os
 from .config import AD_ACCOUNTS
 
+# meta_api.py 수정
 class MetaAdsAPI:
     def __init__(self):
         self.api = FacebookAdsApi.init(
@@ -14,58 +15,58 @@ class MetaAdsAPI:
             app_id=os.getenv('META_APP_ID')
         )
 
+    def get_account_name(self, account_id: str) -> tuple[str, str]:
+        """계정 ID로 팀과 계정명을 찾습니다."""
+        for team, accounts in AD_ACCOUNTS.items():
+            for account_name, acc_id in accounts.items():
+                if acc_id == account_id:
+                    return team, account_name
+        return "unknown", "unknown"
+    
     def get_campaign_name(self, campaign_id):
         try:        
-            # 캠페인 객체 생성
             campaign = Campaign(campaign_id)
-            
-            # fields 파라미터로 name만 지정하여 캠페인 정보 조회
+
             campaign_info = campaign.api_get(
                 fields=['name']
             )
-            
+
             return campaign_info['name']
-        
+
         except Exception as e:
             print(f"Error fetching campaign name: {str(e)}")
             return None
-        
+
     def get_adset_name(self, adset_id):
         try:
-            # AdSet 객체 생성
             adset = AdSet(adset_id)
-            
-            # fields 파라미터로 name만 지정하여 AdSet 정보 조회
+
             adset_info = adset.api_get(
                 fields=['name']
             )
-            
+
             return adset_info['name']
-        
+
         except Exception as e:
             print(f"Error fetching adset name: {str(e)}")
-            return None    
+            return None
 
-    def get_rejected_ads_for_team(self, team_name: str, account_ids: list):
+    def get_rejected_ads_for_team(self, team_name: str, accounts: dict):
         rejected_ads = []
-        for account_id in account_ids:
+        for account_name, account_id in accounts.items():
             account = AdAccount(f'act_{account_id}')
             try:
                 ads = account.get_ads(
                     fields=[
-                        'account_id',
+                        'id',
+                        'name',
                         'campaign_id',
                         'adset_id',
-                        'name',
                         'effective_status',
                         'updated_time',
-                        'ad_review_feedback',
-                        'id'
+                        'ad_review_feedback'
                     ],
-                    
-                    params={
-                        'effective_status': ['DISAPPROVED']
-                    }
+                    params={'effective_status': ['DISAPPROVED']}
                 )
                 
                 for ad in ads:
@@ -73,19 +74,24 @@ class MetaAdsAPI:
                     adset_name = self.get_adset_name(ad['adset_id'])
 
                     reject_reason = "Unknown"
-
                     if 'ad_review_feedback' in ad:
                         feedback = ad['ad_review_feedback'].get('global', {})
                         if feedback:
-                            reject_reason = list(feedback.keys())[0] if feedback else "Unknown"
+                            reject_reason = list(feedback.keys())[0]
 
                     rejected_ads.append({
+                        'team': team_name,
                         'campaign': campaign_name,
                         'adgroup': adset_name,
-                        'ad': ad['name'],
-                        'rejectReasaon': reject_reason,
-                        'lastModified': datetime.strptime(ad['updated_time'], '%Y-%m-%dT%H:%M:%S%z'),
-                        'team': team_name
+                        'ad_id': ad['id'],
+                        'ad_name': ad['name'],
+                        'account_name': account_name,  # 계정명 추가
+                        'reject_reason': reject_reason,
+                        'last_modified': datetime.strptime(
+                            ad['updated_time'], 
+                            '%Y-%m-%dT%H:%M:%S%z'
+                        ),
+                        'is_active': True
                     })
 
             except Exception as e:
@@ -95,7 +101,7 @@ class MetaAdsAPI:
 
     def get_all_rejected_ads(self):
         all_rejected_ads = []
-        for team_name, account_ids in AD_ACCOUNTS.items():
-            team_ads = self.get_rejected_ads_for_team(team_name, account_ids)
+        for team_name, accounts in AD_ACCOUNTS.items():
+            team_ads = self.get_rejected_ads_for_team(team_name, accounts)
             all_rejected_ads.extend(team_ads)
         return all_rejected_ads
