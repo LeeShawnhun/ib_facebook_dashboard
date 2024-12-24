@@ -1,11 +1,10 @@
-fastapi==0.68.0
-uvicorn==0.15.0
+fastapi==0.109.0
+pydantic==2.5.3
+uvicorn[standard]
 sqlalchemy==1.4.23
 alembic==1.7.1
 python-dotenv==0.19.0
-pydantic==1.8.2
 facebook-business==17.0.0
 APScheduler==3.8.1
 jinja2==3.0.1
 pytz==2021.1
-gunicorn==20.1.0
