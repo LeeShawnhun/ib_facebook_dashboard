@@ -48,14 +48,7 @@ class IPRestrictionMiddleware(BaseHTTPMiddleware):
             client_ip = forwarded_for.split(",")[0].strip()
         
         # IP 정보 로깅
-        print(f"""
-        ===== IP Access Log =====
-        Client IP: {client_ip}
-        X-Forwarded-For: {forwarded_for}
-        Allowed IPs: {self.allowed_ips}
-        Allowed IP Ranges: {self.allowed_ip_ranges}
-        =======================
-        """)
+        print(f"접속 IP: {client_ip}")
         
         # IP 검사
         if not self._is_ip_allowed(client_ip):
