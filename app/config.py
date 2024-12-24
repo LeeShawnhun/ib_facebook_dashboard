@@ -1,65 +1,68 @@
-# config.py
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
 AD_ACCOUNTS = {
-    "team1": {
-        "KRW 아이리스_겟비너스": "763773051724736",
-        "USD 아이리스_겟비너스": "233032162820709",
-        "KRW_라이브포레스트(ampm)": "1576692699191162",
-        "본투비맨_마카온2(ibr2)": "1498697444100979",
-        "KRW_마스터벤": "884511159744881",
-        "KRW_라이브포레스트(와이이뮤)": "709832364195105",
-        "USD 마카온": "1409742726421922",
-        "KRW_뮤끄(ibr2)": "1970310656754591",
-        "KRW_프렌냥(ibr2)": "826965869430216",
-        "KRW_안미다온(ibr2)": "8726649030695545",
-        "다트너스(mobi)": "1596591621287444",
-        "비아벨로2(mobi)": "550999907572005"
-    },
-    "team2A": {
-        # "디다(mobi)": "1718182275351695",
-        "디다(ibr3)": "3239119439557992",
-        "KRW_해피토리(ibr2)": "982270966835075",
-        "KRW_뉴티365(오라컷플러스)": "736746350986546",
-        "뉴티365(am)": "182552360695257",
-        "KRW_아비토랩(ibr2)": "852009069700256",
-        "KRW_해피토리(아이치카푸)": "476136698212600",
-        "KRW_해피토리(ibr3)": "515357924776636"
-    },
-    "team2B": {
-        "KRW_리베니프(ibr2)": "774806298116864",
-        "#꽝컨일틻_rediettcokr": "616412433282000",
-        "KRW_리디에뜨(ibr2)": "1099854271058587",
-        "KRW_씨퓨리(ibr2)": "1315895685749541",
-        "KRW_리베니프2(ibr2)": "472973131749582",
-        "KRW_씨퓨리2(ibr2)": "3474729302818463",
-        "#꽝컨일틻_herbeautecokr그외": "257434376199394",
-        "KRW_고헨(ibr2)": "980806370493240",
-        "KRW_프로젝트182(ibr2)": "437614282087207"
-    },
-    "team3": {
-        "#꽝컨일틻_drmonacokr": "206771887918817",
-        "#꽝컨일틻_KRW 하아르": "3182028895436610",
-        "#꽝컨1틻_researchers": "742322977239306",
-        "#꽝컨일틻_researchers2": "3280911448861769",
-        "KRW_리프비기닝kr(ibr2)": "423769813526608",
-        "리서쳐스포우먼(am)": "412571430856410",
-        "KRW 아르다오(mobi)": "332001569419066",
-        "KRW_리서쳐스포우먼2(ibr2)": "1204552363859677"
-    },
-    "team4": {
-        "#꽝컨일틻_bedightcokr반달": "166727698430092",
-        "#꽝컨일틻_bedightcokr그외": "877244826553037",
-        "데이배리어(mobi)": "169909486115547",
-        "데이배리어(ibr3)": "982704932994962",
-        "USD_건강도감": "353016230500168"
-    },
-    "overseas": {
-        "숍라인 KRW홍콩": "195037410313009",
-        "홍콩(mobi)": "3243028922660276",
-        "숍라인_대만(mobi)": "948837260428291",
-        "KRW_숍라인(대만)": "1182487079602495",
-        "쇼피 비아벨로 sg03 [쇼피 협력광고]": "325564083299769",
-        "us_씨퓨리(mobi)": "1008921330228138",
-        "USA_리베니프": "2975886262542875",
-        "US_베다이트": "470579125428969"
+        "team1": {
+            "KRW 아이리스_겟비너스": os.getenv("TEAM1_KRW_IRIS_GETVENUS"),
+            "USD 아이리스_겟비너스": os.getenv("TEAM1_USD_IRIS_GETVENUS"),
+            "KRW_라이브포레스트(ampm)": os.getenv("TEAM1_KRW_LIVEFOREST_AMPM"),
+            "본투비맨_마카온2(ibr2)": os.getenv("TEAM1_BORNTOBEAMAN_MACAON2"),
+            "KRW_마스터벤": os.getenv("TEAM1_KRW_MASTERBEN"),
+            "KRW_라이브포레스트(와이이뮤)": os.getenv("TEAM1_KRW_LIVEFOREST_YYM"),
+            "USD 마카온": os.getenv("TEAM1_USD_MACAON"),
+            "KRW_뮤끄(ibr2)": os.getenv("TEAM1_KRW_MUQUE_IBR2"),
+            "KRW_프렌냥(ibr2)": os.getenv("TEAM1_KRW_FRENYANG_IBR2"),
+            "KRW_안미다온(ibr2)": os.getenv("TEAM1_KRW_ANMIDAON_IBR2"),
+            "다트너스(mobi)": os.getenv("TEAM1_DARTNERS_MOBI"),
+            "비아벨로2(mobi)": os.getenv("TEAM1_VIABELLO2_MOBI")
+        },
+        "team2A": {
+            "디다(ibr3)": os.getenv("TEAM2A_DIDA_IBR3"),
+            "KRW_해피토리(ibr2)": os.getenv("TEAM2A_KRW_HAPPYTORY_IBR2"),
+            "KRW_뉴티365(오라컷플러스)": os.getenv("TEAM2A_KRW_NEWTY365_ORACUT"),
+            "뉴티365(am)": os.getenv("TEAM2A_NEWTY365_AM"),
+            "KRW_아비토랩(ibr2)": os.getenv("TEAM2A_KRW_ABITOLAB_IBR2"),
+            "KRW_해피토리(아이치카푸)": os.getenv("TEAM2A_KRW_HAPPYTORY_ICHICAPU"),
+            "KRW_해피토리(ibr3)": os.getenv("TEAM2A_KRW_HAPPYTORY_IBR3")
+        },
+        "team2B": {
+            "KRW_리베니프(ibr2)": os.getenv("TEAM2B_KRW_RIBENIF_IBR2"),
+            "#꽝컨일틻_rediettcokr": os.getenv("TEAM2B_REDIET_CO_KR"),
+            "KRW_리디에뜨(ibr2)": os.getenv("TEAM2B_KRW_RIDIETTE_IBR2"),
+            "KRW_씨퓨리(ibr2)": os.getenv("TEAM2B_KRW_CFURY_IBR2"),
+            "KRW_리베니프2(ibr2)": os.getenv("TEAM2B_KRW_RIBENIF2_IBR2"),
+            "KRW_씨퓨리2(ibr2)": os.getenv("TEAM2B_KRW_CFURY2_IBR2"),
+            "#꽝컨일틻_herbeautecokr그외": os.getenv("TEAM2B_HERBEAUTE_CO_KR"),
+            "KRW_고헨(ibr2)": os.getenv("TEAM2B_KRW_GOHEN_IBR2"),
+            "KRW_프로젝트182(ibr2)": os.getenv("TEAM2B_KRW_PROJECT182_IBR2")
+        },
+        "team3": {
+            "#꽝컨일틻_drmonacokr": os.getenv("TEAM3_DRMONACO_KR"),
+            "#꽝컨일틻_KRW 하아르": os.getenv("TEAM3_KRW_HAAR"),
+            "#꽝컨1틻_researchers": os.getenv("TEAM3_RESEARCHERS"),
+            "#꽝컨일틻_researchers2": os.getenv("TEAM3_RESEARCHERS2"),
+            "KRW_리프비기닝kr(ibr2)": os.getenv("TEAM3_KRW_LEAFBEGINNING_KR_IBR2"),
+            "리서쳐스포우먼(am)": os.getenv("TEAM3_RESEARCHERS_WOMEN_AM"),
+            "KRW 아르다오(mobi)": os.getenv("TEAM3_KRW_ARDAO_MOBI"),
+            "KRW_리서쳐스포우먼2(ibr2)": os.getenv("TEAM3_KRW_RESEARCHERS_WOMEN2_IBR2")
+        },
+        "team4": {
+            "#꽝컨일틻_bedightcokr반달": os.getenv("TEAM4_BEDIGHT_CO_KR_BANDAL"),
+            "#꽝컨일틻_bedightcokr그외": os.getenv("TEAM4_BEDIGHT_CO_KR_OTHER"),
+            "데이배리어(mobi)": os.getenv("TEAM4_DAYBARRIER_MOBI"),
+            "데이배리어(ibr3)": os.getenv("TEAM4_DAYBARRIER_IBR3"),
+            "USD_건강도감": os.getenv("TEAM4_USD_GEONGANG")
+        },
+        "overseas": {
+            "숍라인 KRW홍콩": os.getenv("OVERSEAS_SHOPLINE_KRW_HK"),
+            "홍콩(mobi)": os.getenv("OVERSEAS_HK_MOBI"),
+            "숍라인_대만(mobi)": os.getenv("OVERSEAS_SHOPLINE_TW_MOBI"),
+            "KRW_숍라인(대만)": os.getenv("OVERSEAS_KRW_SHOPLINE_TW"),
+            "쇼피 비아벨로 sg03 [쇼피 협력광고]": os.getenv("OVERSEAS_SHOPEE_VIABELLO_SG03"),
+            "us_씨퓨리(mobi)": os.getenv("OVERSEAS_US_CFURY_MOBI"),
+            "USA_리베니프": os.getenv("OVERSEAS_USA_RIBENIF"),
+            "US_베다이트": os.getenv("OVERSEAS_US_BEDIGHT")
+        }
     }
-}
