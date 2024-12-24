@@ -8,7 +8,17 @@ document.addEventListener('DOMContentLoaded', () => {
 function updateLastUpdateTime() {
     const updateTimeElement = document.getElementById('updateTime');
     const now = new Date();
-    const formattedTime = now.toLocaleString('ko-KR', { 
+    
+    const lastUpdateTime = new Date(now);
+    
+    if (now.getMinutes() < 30) {
+        lastUpdateTime.setHours(lastUpdateTime.getHours() - 1);
+    }
+    
+    lastUpdateTime.setMinutes(30);
+    lastUpdateTime.setSeconds(0);
+    
+    const formattedTime = lastUpdateTime.toLocaleString('ko-KR', { 
         year: 'numeric', 
         month: '2-digit', 
         day: '2-digit',
@@ -68,7 +78,6 @@ async function loadTeamData(team) {
             tableBody.appendChild(row);
         });
 
-        updateLastUpdateTime();
     } catch (error) {
         console.error('Error fetching data:', error);
         tableBody.innerHTML = `
