@@ -4,13 +4,13 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-
-
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import os
 import ipaddress
 from dotenv import load_dotenv
+import hashlib
+import time
 
 from app import models, crud, schemas, backup
 from app.database import SessionLocal, engine
@@ -20,9 +20,13 @@ from app.meta_api import MetaAdsAPI
 # .env 파일 로드
 load_dotenv()
 
-# 환경변수에서 허용 IP 목록 가져오기
+# 환경변수 설정
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALLOWED_IPS = os.getenv("ALLOWED_IPS", "").split(",")
 ALLOWED_IP_RANGES = os.getenv("ALLOWED_IP_RANGES", "").split(",")
+
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY environment variable is not set")
 
 class IPRestrictionMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
@@ -30,7 +34,6 @@ class IPRestrictionMiddleware(BaseHTTPMiddleware):
         self.allowed_ips = set(ip.strip() for ip in ALLOWED_IPS if ip.strip())
         self.allowed_ip_ranges = []
         
-        # IP 범위 처리
         for ip_range in ALLOWED_IP_RANGES:
             if ip_range.strip():
                 try:
@@ -39,30 +42,22 @@ class IPRestrictionMiddleware(BaseHTTPMiddleware):
                     print(f"Invalid IP range format: {ip_range}, error: {e}")
 
     async def dispatch(self, request: Request, call_next):
-        # client IP 주소 가져오기
         client_ip = request.client.host
-        
-        # Render의 프록시를 통과한 실제 클라이언트 IP 확인
         forwarded_for = request.headers.get("x-forwarded-for")
         if forwarded_for:
             client_ip = forwarded_for.split(",")[0].strip()
-            
-        # IP 검사
+
         if not self._is_ip_allowed(client_ip):
-            print(f"Access Denied for IP: {client_ip}")
             return JSONResponse(
                 status_code=403,
-                content={
-                    "detail": f"Access denied. Your IP ({client_ip}) is not in the allowed list."
-                }
+                content={"detail": f"Access denied. Your IP ({client_ip}) is not allowed."}
             )
         
-        print(f"Access Granted for IP: {client_ip}")
         return await call_next(request)
     
     def _is_ip_allowed(self, ip: str) -> bool:
         if not self.allowed_ips and not self.allowed_ip_ranges:
-            return True  # IP 제한이 설정되지 않은 경우 모든 접근 허용
+            return True
             
         if ip in self.allowed_ips:
             return True
@@ -77,29 +72,28 @@ class IPRestrictionMiddleware(BaseHTTPMiddleware):
             
         return False
 
-# 터미널에 uvicorn main:app --reload 로 실행
 app = FastAPI(title="Meta Ads Monitor")
 
-# CORS 미들웨어 설정
+# 미들웨어 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 프로덕션에서는 실제 도메인으로 변경
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# IP 제한 미들웨어 추가
 app.add_middleware(IPRestrictionMiddleware)
 
-# 정적 파일 서빙 설정
+# 정적 파일과 템플릿 설정
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# 템플릿 설정
 templates = Jinja2Templates(directory="templates")
 
 # 데이터베이스 초기화
 models.Base.metadata.create_all(bind=engine)
+def get_hashed_path(file_path: str) -> str:
+    timestamp = str(int(time.time()))
+    hash_object = hashlib.md5(timestamp.encode())
+    return f"/static/{hash_object.hexdigest()}/{file_path}"
 
 # Dependency
 def get_db():
@@ -113,12 +107,26 @@ def get_db():
 async def startup_event():
     init_scheduler()
 
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    return response
+
+@app.middleware("http")
+async def add_cache_control(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/static"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+    return response
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
-    return templates.TemplateResponse(
-        "index.html",
-        {"request": request}
-    )
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "css_path": get_hashed_path("css/index.css"),
+        "js_path": get_hashed_path("js/index.js")
+    })
 
 @app.get("/ads/", response_model=List[schemas.Ad])
 def read_ads(
