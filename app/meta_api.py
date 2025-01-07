@@ -16,7 +16,6 @@ class MetaAdsAPI:
         )
 
     def get_account_name(self, account_id: str) -> tuple[str, str]:
-        """계정 ID로 팀과 계정명을 찾습니다."""
         for team, accounts in AD_ACCOUNTS.items():
             for account_name, acc_id in accounts.items():
                 if acc_id == account_id:
@@ -85,7 +84,7 @@ class MetaAdsAPI:
                         'adgroup': adset_name,
                         'ad_id': ad['id'],
                         'ad_name': ad['name'],
-                        'account_name': account_name,  # 계정명 추가
+                        'account_name': account_name,
                         'reject_reason': reject_reason,
                         'last_modified': datetime.strptime(
                             ad['updated_time'], 

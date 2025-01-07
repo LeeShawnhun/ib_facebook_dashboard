@@ -83,7 +83,7 @@ app = FastAPI(title="Meta Ads Monitor")
 # CORS 미들웨어 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 프로덕션에서는 실제 도메인으로 변경
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -149,12 +149,10 @@ async def refresh_ads(
     request: Request,
     db: Session = Depends(get_db)
 ):
-    """수동으로 광고 데이터를 새로고침합니다."""
     try:
         meta_api = MetaAdsAPI()
         rejected_ads = meta_api.get_all_rejected_ads()
         
-        # 현재 API 응답에 있는 광고 ID 목록
         current_ad_ids = []
         
         for ad_data in rejected_ads:
@@ -162,7 +160,6 @@ async def refresh_ads(
             ad = schemas.AdCreate(**ad_data)
             crud.create_or_update_ad(db=db, ad=ad)
         
-        # API 응답에 없는 광고들을 비활성화
         crud.deactivate_old_ads(db, current_ad_ids)
         
         return {"status": "success", "message": "Ads refreshed successfully"}
