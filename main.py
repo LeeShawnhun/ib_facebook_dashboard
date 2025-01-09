@@ -1,10 +1,10 @@
-from fastapi import FastAPI, Depends, Query, Request
+# main.py
+from fastapi import FastAPI, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-
 
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -62,7 +62,7 @@ class IPRestrictionMiddleware(BaseHTTPMiddleware):
     
     def _is_ip_allowed(self, ip: str) -> bool:
         if not self.allowed_ips and not self.allowed_ip_ranges:
-            return True  # IP 제한이 설정되지 않은 경우 모든 접근 허용
+            return True
             
         if ip in self.allowed_ips:
             return True
@@ -128,13 +128,6 @@ def read_ads(
     active_only: bool = Query(default=True),
     db: Session = Depends(get_db)
 ):
-    """
-    광고 목록을 조회합니다.
-    - skip: 건너뛸 레코드 수
-    - limit: 반환할 최대 레코드 수
-    - team: 특정 팀의 광고만 조회
-    - active_only: 활성 상태의 광고만 조회
-    """
     ads = crud.get_ads(
         db, 
         skip=skip, 
@@ -142,7 +135,26 @@ def read_ads(
         team=team, 
         active_only=active_only
     )
-    return ads
+    
+    response_data = [
+        {
+            "id": ad.id,
+            "team": ad.team,
+            "campaign": ad.campaign,
+            "adgroup": ad.adgroup,
+            "ad_id": ad.ad_id,
+            "ad_name": ad.ad_name,
+            "account_name": ad.account_name,
+            "reject_reason": ad.reject_reason,
+            "planner_comment": ad.planner_comment,
+            "executor_comment": ad.executor_comment,
+            "last_modified": ad.last_modified,
+            "is_active": ad.is_active,
+            "created_at": ad.created_at
+        } for ad in ads
+    ]
+    
+    return response_data
 
 @app.get("/ads/refresh")
 async def refresh_ads(
@@ -174,7 +186,6 @@ async def refresh_ads(
         )
     
 @app.get("/admin/backup")
-@app.post("/admin/backup")
 async def create_backup():
     success, message = backup.backup_database()
     if success:
@@ -182,7 +193,6 @@ async def create_backup():
     return {"status": "error", "message": message}
 
 @app.get("/admin/restore")
-@app.post("/admin/restore")
 async def restore_backup():
     success, message = backup.restore_latest_backup()
     if success:
@@ -204,19 +214,18 @@ async def download_backup():
         media_type='application/octet-stream'
     )
 
-@app.get("/test-ip")
-async def test_ip(request: Request):
-    client_ip = request.client.host
-    forwarded_for = request.headers.get("x-forwarded-for")
+@app.put("/ads/{ad_id}/comments")
+def update_ad_comments(
+    ad_id: str,
+    comments: schemas.AdUpdate,
+    db: Session = Depends(get_db)
+):
+    ad = crud.get_ad(db, ad_id)
+    if not ad:
+        raise HTTPException(status_code=404, detail="Ad not found")
     
-    return {
-        "client_ip": client_ip,
-        "x-forwarded-for": forwarded_for,
-        "is_allowed": client_ip in ALLOWED_IPS or any(
-            ipaddress.ip_address(client_ip) in ipaddress.ip_network(range)
-            for range in ALLOWED_IP_RANGES if range.strip()
-        )
-    }
+    updated_ad = crud.update_ad_comments(db, ad_id, comments)
+    return updated_ad
 
 if __name__ == "__main__":
     import uvicorn

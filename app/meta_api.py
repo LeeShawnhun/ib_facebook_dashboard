@@ -1,3 +1,4 @@
+# meta_api.py
 from facebook_business.api import FacebookAdsApi
 from facebook_business.adobjects.adaccount import AdAccount
 from facebook_business.adobjects.campaign import Campaign
@@ -6,7 +7,6 @@ from datetime import datetime
 import os
 from .config import AD_ACCOUNTS
 
-# meta_api.py 수정
 class MetaAdsAPI:
     def __init__(self):
         self.api = FacebookAdsApi.init(

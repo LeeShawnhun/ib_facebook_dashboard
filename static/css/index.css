@@ -113,6 +113,92 @@ td:nth-child(5) {
     min-width: 300px;
 }
 
+/* 코멘트 관련 스타일 */
+.comment-cell {
+    position: relative;
+    min-width: 200px;
+    max-width: 300px;
+}
+
+.comment-display {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px;
+}
+
+.comment-text {
+    flex: 1;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 12px;
+    color: #2c3e50;
+}
+
+.edit-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.edit-button:hover {
+    opacity: 1;
+}
+
+.comment-edit {
+    padding: 8px;
+}
+
+.comment-input {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    margin: 4px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    font-size: 12px;
+    color: #2c3e50;
+}
+
+.edit-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.save-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s;
+}
+
+.save-button:hover {
+    background-color: #45a049;
+}
+
+.cancel-button {
+    background-color: #f44336;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s;
+}
+
+.cancel-button:hover {
+    background-color: #d32f2f;
+}
+
 .scroll-wrapper {
     overflow-x: auto;
 }

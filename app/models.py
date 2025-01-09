@@ -17,3 +17,5 @@ class Ad(Base):
     last_modified = Column(DateTime, default=datetime.utcnow)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    planner_comment = Column(Text, nullable=True)  # 기획팀 의견
+    executor_comment = Column(Text, nullable=True)  # 집행팀 의견

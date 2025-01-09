@@ -12,6 +12,8 @@ class AdBase(BaseModel):
     reject_reason: str
     last_modified: datetime
     is_active: bool = True
+    planner_comment: Optional[str] = None
+    executor_comment: Optional[str] = None
 
 class AdCreate(AdBase):
     pass
@@ -20,6 +22,8 @@ class AdUpdate(BaseModel):
     is_active: Optional[bool] = None
     reject_reason: Optional[str] = None
     last_modified: Optional[datetime] = None
+    planner_comment: Optional[str] = None
+    executor_comment: Optional[str] = None
 
 class Ad(AdBase):
     id: int

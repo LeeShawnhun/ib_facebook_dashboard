@@ -1,3 +1,4 @@
+# crud.py
 from sqlalchemy.orm import Session
 from . import models, schemas
 from datetime import datetime
@@ -39,3 +40,18 @@ def deactivate_old_ads(db: Session, current_ad_ids: list[str]):
         .filter(models.Ad.ad_id.notin_(current_ad_ids))\
         .update({models.Ad.is_active: False}, synchronize_session=False)
     db.commit()
+
+def update_ad_comments(db: Session, ad_id: str, comments: schemas.AdUpdate):
+    ad = get_ad(db, ad_id)
+    if not ad:
+        return None
+    
+    if comments.planner_comment is not None:
+        ad.planner_comment = comments.planner_comment
+    if comments.executor_comment is not None:
+        ad.executor_comment = comments.executor_comment
+    ad.last_modified = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(ad)
+    return ad
