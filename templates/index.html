@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -37,7 +38,14 @@
             <button onclick="loadTeamData('teamOverseas')" class="team-button" data-team="teamOverseas">해외진출</button>
         </div>
 
-        <h2 id="currentTeam" class="current-team">1팀 광고 현황</h2>
+        <div class="teamAndBackup">
+            <h2 id="currentTeam" class="current-team">1팀 광고 현황</h2>
+            <input type="file" id="dbFileInput" accept=".db" style="display: none;">
+            <button onclick="document.getElementById('dbFileInput').click()" class="admin-button">
+                DB 복원하기
+            </button>
+            <div id="restoreStatus" class="status-message"></div>
+        </div>
 
         <div id="loading" class="loading" style="display: none;">
             데이터를 불러오는 중...

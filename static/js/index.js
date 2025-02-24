@@ -220,3 +220,45 @@ async function downloadBackup() {
         console.error('Error downloading backup:', error);
     }
 }
+
+document.getElementById('dbFileInput').addEventListener('change', async function(e) {
+    if (!e.target.files.length) return;
+
+    const file = e.target.files[0];
+    if (!file.name.endsWith('.db')) {
+        alert('DB 파일(.db)만 업로드 가능합니다.');
+        return;
+    }
+
+    const statusElement = document.getElementById('restoreStatus');
+    statusElement.textContent = '복원 중...';
+    statusElement.className = 'status-message';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const response = await fetch('/admin/restore-upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            statusElement.textContent = '복원 완료!';
+            statusElement.className = 'status-message success';
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            statusElement.textContent = `오류: ${result.message}`;
+            statusElement.className = 'status-message error';
+        }
+    } catch (error) {
+        statusElement.textContent = '복원 중 오류가 발생했습니다.';
+        statusElement.className = 'status-message error';
+        console.error('Error:', error);
+    }
+
+    // 파일 입력 초기화
+    e.target.value = '';
+});

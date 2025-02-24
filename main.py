@@ -1,8 +1,8 @@
 # main.py
 import csv
 from datetime import datetime
-from io import BytesIO, StringIO
-from fastapi import FastAPI, Depends, HTTPException, Query, Request
+from io import StringIO
+from fastapi import FastAPI, Depends, HTTPException, Query, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -335,6 +335,16 @@ async def download_backup():
         filename=latest_backup,
         media_type='application/octet-stream'
     )
+
+@app.post("/admin/restore-upload")
+async def restore_from_upload(file: UploadFile):
+    if not file.filename.endswith('.db'):
+        return {"status": "error", "message": "Invalid file type. Please upload a .db file"}
+    
+    success, message = await backup.restore_from_upload(file)
+    if success:
+        return {"status": "success", "message": message}
+    return {"status": "error", "message": message}
 
 @app.put("/ads/{ad_id}/comments")
 def update_ad_comments(
