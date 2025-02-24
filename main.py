@@ -1,6 +1,9 @@
 # main.py
+import csv
+from datetime import datetime
+from io import BytesIO, StringIO
 from fastapi import FastAPI, Depends, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -120,6 +123,13 @@ async def read_root(request: Request):
         {"request": request}
     )
 
+@app.get("/statistics", response_class=HTMLResponse)
+async def read_statistics(request: Request):
+    return templates.TemplateResponse(
+        "statistics.html",
+        {"request": request}
+    )
+
 @app.get("/ads/", response_model=List[schemas.Ad])
 def read_ads(
     skip: int = Query(default=0, ge=0),
@@ -184,6 +194,118 @@ async def refresh_ads(
                 "message": f"Failed to refresh ads: {str(e)}"
             }
         )
+    
+
+@app.get("/ads/export")
+def export_ads_csv(
+    team: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    # 날짜 변환
+    start_dt = datetime.strptime(start_date, "%Y-%m-%d") if start_date else None
+    end_dt = datetime.strptime(end_date, "%Y-%m-%d") if end_date else None
+    
+    # 데이터 조회
+    ads = crud.get_ad_history(
+        db,
+        team=team,
+        start_date=start_dt,
+        end_date=end_dt,
+        skip=0,
+        limit=None
+    )
+    
+    # CSV 데이터 생성 (명시적으로 쉼표 구분자 지정)
+    output = StringIO()
+    writer = csv.writer(output, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+    
+    # BOM 추가
+    output.write('\ufeff')
+    
+    # 헤더 작성
+    writer.writerow([
+        "계정", "캠페인", "광고 그룹", "광고", 
+        "거절 사유", "마지막 수정일", "기획팀 의견", "집행팀 의견"
+    ])
+    
+    # 데이터 작성
+    for ad in ads:
+        writer.writerow([
+            ad.account_name,
+            ad.campaign,
+            ad.adgroup,
+            ad.ad_name,
+            ad.reject_reason,
+            ad.last_modified.strftime("%Y-%m-%d %H:%M:%S") if ad.last_modified else "",
+            ad.planner_comment or "",
+            ad.executor_comment or ""
+        ])
+    
+    # StringIO의 내용을 UTF-8로 인코딩
+    csv_string = output.getvalue()
+    
+    # 파일 이름 생성
+    filename = f"ads_report_{team or 'all'}_{datetime.now().strftime('%Y%m%d')}.csv"
+    
+    return StreamingResponse(
+        iter([csv_string.encode('utf-8-sig')]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}",
+            "Content-Type": "text/csv; charset=utf-8"
+        }
+    )
+    
+@app.get("/ads/history", response_model=List[schemas.Ad])
+def read_ad_history(
+    request: Request,
+    team: Optional[str] = None,
+    start_date: Optional[str] = Query(None, description="Format: YYYY-MM-DD"),
+    end_date: Optional[str] = Query(None, description="Format: YYYY-MM-DD"),
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, le=1000),
+    db: Session = Depends(get_db)
+):
+    # 날짜 문자열을 datetime 객체로 변환
+    start_dt = datetime.strptime(start_date, "%Y-%m-%d") if start_date else None
+    end_dt = datetime.strptime(end_date, "%Y-%m-%d") if end_date else None
+    
+    history = crud.get_ad_history(
+        db,
+        team=team,
+        start_date=start_dt,
+        end_date=end_dt,
+        skip=skip,
+        limit=limit
+    )
+    
+    return history
+
+@app.get("/ads/team-stats")
+def read_team_stats(
+    request: Request,
+    start_date: Optional[str] = Query(None, description="Format: YYYY-MM-DD"),
+    end_date: Optional[str] = Query(None, description="Format: YYYY-MM-DD"),
+    db: Session = Depends(get_db)
+):
+    start_dt = datetime.strptime(start_date, "%Y-%m-%d") if start_date else None
+    end_dt = datetime.strptime(end_date, "%Y-%m-%d") if end_date else None
+    
+    stats = crud.get_team_rejection_stats(db, start_dt, end_dt)
+    
+    return {
+        "team_stats": [
+            {
+                "team": stat.team,
+                "total_rejections": stat.total_rejections,
+                "affected_campaigns": stat.affected_campaigns,
+                "common_reasons": stat.common_reasons
+            }
+            for stat in stats
+        ]
+    }
     
 @app.get("/admin/backup")
 async def create_backup():

@@ -4,6 +4,8 @@ let editingCell = null;
 document.addEventListener('DOMContentLoaded', () => {
     loadTeamData('team1');
     updateLastUpdateTime();
+    document.querySelector('.nav-link[href="/"]').classList.add('active');
+    document.querySelector('.nav-link[href="/statistics"]').classList.remove('active');
 });
 
 function updateLastUpdateTime() {

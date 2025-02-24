@@ -1,4 +1,5 @@
 # crud.py
+from sqlalchemy import distinct, func
 from sqlalchemy.orm import Session
 from . import models, schemas
 from datetime import datetime
@@ -55,3 +56,40 @@ def update_ad_comments(db: Session, ad_id: str, comments: schemas.AdUpdate):
     db.commit()
     db.refresh(ad)
     return ad
+
+def get_ad_history(
+    db: Session,
+    team: str = None,
+    start_date: datetime = None,
+    end_date: datetime = None,
+    skip: int = 0,
+    limit: int = 100
+):
+    query = db.query(models.Ad)
+    
+    if team:
+        query = query.filter(models.Ad.team == team)
+    if start_date:
+        query = query.filter(models.Ad.created_at >= start_date)
+    if end_date:
+        query = query.filter(models.Ad.created_at <= end_date)
+        
+    # 날짜 기준 내림차순 정렬
+    query = query.order_by(models.Ad.created_at.desc())
+    
+    return query.offset(skip).limit(limit).all()
+
+def get_team_rejection_stats(db: Session, start_date: datetime = None, end_date: datetime = None):
+    query = db.query(
+        models.Ad.team,
+        func.count(models.Ad.id).label('total_rejections'),
+        func.count(distinct(models.Ad.campaign)).label('affected_campaigns'),
+        func.array_agg(distinct(models.Ad.reject_reason)).label('common_reasons')
+    ).group_by(models.Ad.team)
+    
+    if start_date:
+        query = query.filter(models.Ad.created_at >= start_date)
+    if end_date:
+        query = query.filter(models.Ad.created_at <= end_date)
+        
+    return query.all()

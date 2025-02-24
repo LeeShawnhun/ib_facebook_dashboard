@@ -7,7 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/common.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/css/navbar.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/statistics.css') }}">
 </head>
 <body>
     <nav class="navbar">
@@ -21,13 +21,9 @@
     </nav>
     <div class="container">
         <div class="header">
-            <h1 class="title">Meta 광고 현황 대시보드</h1>
-            <div id="updateTime" class="update-time">
-                마지막 업데이트: 로딩중...
-            </div>
+            <h1 class="title">팀별 리젝 히스토리</h1>
         </div>
         
-        <!-- 팀 선택 버튼 -->
         <div class="team-buttons">
             <button onclick="loadTeamData('team1')" class="team-button" data-team="team1">1팀</button>
             <button onclick="loadTeamData('team2A')" class="team-button" data-team="team2A">2팀A</button>
@@ -36,11 +32,12 @@
             <button onclick="loadTeamData('team4')" class="team-button" data-team="team4">4팀</button>
             <button onclick="loadTeamData('teamOverseas')" class="team-button" data-team="teamOverseas">해외진출</button>
         </div>
-
-        <h2 id="currentTeam" class="current-team">1팀 광고 현황</h2>
-
-        <div id="loading" class="loading" style="display: none;">
-            데이터를 불러오는 중...
+        
+        <div class="teamAndDownload">
+            <h2 id="currentTeam" class="current-team">1팀 리젝 히스토리</h2>
+            <button onclick="downloadCurrentTableAsCSV()" class="download-button">
+                CSV 다운로드
+            </button>
         </div>
 
         <div class="table-container">
@@ -65,6 +62,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', path='/js/index.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/statistics.js') }}"></script>
 </body>
 </html>

@@ -1,83 +1,9 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f5f5f5;
-    color: #333;
-    line-height: 1.6;
-    caret-color: transparent;
-}
-
-.container {
-    max-width: 2000px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.header {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-}
-
-.title {
-    font-size: 24px;
-    color: #2c3e50;
-    text-align: center;
-    margin-bottom: 10px;
-}
-
+/* index.css - 메인 페이지(대시보드)에서만 사용되는 스타일 */
 .update-time {
     text-align: center;
     color: #666;
     font-size: 14px;
     margin-bottom: 20px;
-}
-
-.team-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 20px;
-}
-
-.team-button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 5px;
-    background-color: #3498db;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.team-button:hover {
-    background-color: #2980b9;
-}
-
-.team-button.active {
-    background-color: #2c3e50;
-}
-
-.current-team {
-    font-size: 18px;
-    color: #2c3e50;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.table-container {
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    overflow: hidden;
 }
 
 table {
@@ -113,7 +39,6 @@ td:nth-child(5) {
     min-width: 300px;
 }
 
-/* 코멘트 관련 스타일 */
 .comment-cell {
     position: relative;
     min-width: 200px;
@@ -169,15 +94,18 @@ td:nth-child(5) {
     gap: 8px;
 }
 
-.save-button {
-    background-color: #4CAF50;
-    color: white;
+.save-button, .cancel-button {
     padding: 6px 12px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
     transition: background-color 0.3s;
+    color: white;
+}
+
+.save-button {
+    background-color: #4CAF50;
 }
 
 .save-button:hover {
@@ -186,30 +114,8 @@ td:nth-child(5) {
 
 .cancel-button {
     background-color: #f44336;
-    color: white;
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background-color 0.3s;
 }
 
 .cancel-button:hover {
     background-color: #d32f2f;
-}
-
-.scroll-wrapper {
-    overflow-x: auto;
-}
-
-@media (max-width: 768px) {
-    .container {
-        padding: 10px;
-    }
-
-    .team-button {
-        padding: 6px 12px;
-        font-size: 14px;
-    }
 }
